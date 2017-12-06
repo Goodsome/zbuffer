@@ -2,11 +2,16 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import read
-
+#from OpenGL.GL.framebufferobjects import *
 
 source = '/home/x/xgit/zbuffer/model/wolf.obj'
 r = read.Read(source)
 v,f,x = r.out()
+ESCAPE = as_8_bit('\033')
+
+def keyboard(key, foo, bar):
+    if key == ESCAPE:
+        exit()
 
 def drawFunc():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -39,6 +44,22 @@ def drawFunc():
         glVertex3fv(v[n[2]-1])
     glEnd()
 
+    fbo = glGenFramebuffers(1)
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo)
+
+    color = glGenRenderbuffers(1)
+    glBindRenderbuffer(GL_RENDERBUFFER, color)
+    glRenderbufferStorage(
+            GL_RENDERBUFFER,
+            GL_RGBA,
+            800,
+            800,
+            )
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color)
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0)
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+    print(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
     glFlush()
 
 glutInit()
@@ -47,4 +68,5 @@ glutInitWindowSize(800,800)
 glutCreateWindow("First")
 glutDisplayFunc(drawFunc)
 #glutIdleFunc(drawFunc)
+glutKeyboardFunc(keyboard)
 glutMainLoop()
