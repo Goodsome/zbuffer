@@ -1,76 +1,106 @@
-from OpenGL.GL import *
-from OpenGL.GLU import *
+
+m OpenGL.GL import *
 from OpenGL.GLUT import *
-from OpenGL.arrays import vbo
 from OpenGL.GL import shaders
 import numpy as np
-import read
+
+shaderProgram = None
+vertex_buffer = None
+vertex_array = None
+vertex_data = [0, 1, 0,
+               -1, -1, 0,
+               1, -1, 0, ]
+vertex = np.array(vertex_data, np.float32)
 
 
-class test(object):
+def keyboard(key, foo, bar):
+    exit()
 
-    def __init__():
-        pass
 
-    source = '/home/x/xgit/zbuffer/model/wolf.obj'
-    r = read.Read(source)
-    vertex, face,x = r.out()
-    vertex = sum(vertex,[])
-    vertex = np.array(vertex)
-    vertex = [[0.5, 0.5, 0], [-0.5, 0.5, 0], [0.5, -0.5, 0], [-0.5, -0.5, 0]]
-    vertexbuffer = glGenBuffers(1)
-    vbo = None
-    shader = None
-    def keyboard(key, foo, bar):
-        exit()
+def init_gl(width, height):
 
-    def Oninit():
-        VERTEX_SHADER = shaders.compileShader(
-                '''#version 120
-                void main(){
-                    gl_Position = gl_ModeViewProjectionMatrix * gl_Vertex;
-                }''', GL_VERTEX_SHADER)
+    # glMatrixMode(GL_PROJECTION)
+    # glLoadIdentity()
+    # gluPerspective(45.0, float(width) / float(height), 0.1, 100.0)
+    # glMatrixMode(GL_MODELVIEW)
 
-        FRAGMENT_SHADER = shaders.compileShader(
-                """#version 120
-                void main() {
-                    gl_FragColor = vec4( 0, 1, 0, 1 );
-                }""", GL_FRAGMENT_SHADER)
+    init_shader()
+    init_vbo_vao()
 
-        shader = shaders.compileProgram(VERTEX_SHADER,FRAGMENT_SHADER)
+def init_shader():
 
-        vbo = vbo.VBO(array(self.vertex, 'f'))
-        
-    def initgl():
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer)
-        glBufferData(GL_ARRAY_BUFFER,vertex,GL_STATIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+    global shaderProgram
 
-    def display():
-        glClearColor(0, 0, 0, 1)
-        glClear(GL_COLOR_BUFFER_BIT)
-        
-        glUseProgram(self.shader)
-        vbo.bind()
+    VERTEX_SHADER = shaders.compileShader(
+        """
+        void main() {
+            gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; 
+        }""", GL_VERTEX_SHADER)
 
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glVertexPointerf(self.vbo)
-        glDrawArrays(GL_POINTS, 0, 4)
-        vbo.unbind()
-        glDisableClientState(GL_VERTEX_ARRAY)
-        glUseProgram(0)
+    FRAGMENT_SHADER = shaders.compileShader(
+        """
+        void main() {
+            gl_FragColor = vec4( 0, 1, 0, 1 ); 
+            }""", GL_FRAGMENT_SHADER)
 
-        glutSwapBuffers()
+    shaderProgram = shaders.compileProgram(VERTEX_SHADER, FRAGMENT_SHADER)
 
+
+def init_vbo_vao():
+
+    global vertex, vertex_array, vertex_buffer
+
+    vertex_buffer = glGenBuffers(1)
+    vertex_array = glGenVertexArrays(1)
+
+    glBindVertexArray(vertex_array)
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer)
+    glBufferData(GL_ARRAY_BUFFER, vertex, GL_STATIC_DRAW)
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0)
+    glEnableVertexAttribArray(0)
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0)
+    glBindVertexArray(0)
+
+
+def reshape(width, height):
+
+    glViewport(0, 0, width, height)
+    # glLoadIdentity()
+    # gluPerspective(45.0, float(width)/float(height), 0.1, 100.0)
+    # glMatrixMode(GL_MODELVIEW)
+
+
+def display():
+    glClearColor(0.2, 0.3, 0.3, 1.0)
+    glClear(GL_COLOR_BUFFER_BIT)
+
+    # glLoadIdentity()
+    # glTranslatef(-1.5, 0.0, -7.0)
+
+    glUseProgram(shaderProgram)
+    glBindVertexArray(vertex_array)
+    glDrawArrays(GL_TRIANGLES, 0, 3)
+
+    glBindVertexArray(0)
+    glUseProgram(0)
+
+    glutSwapBuffers()
+
+
+def main():
     glutInit()
     glutInitWindowPosition(200, 84)
-    glutInitDisplayMode(GLUT_DOUBLE| GLUT_RGBA)
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA)
     glutInitWindowSize(800, 800)
     glutCreateWindow("x")
-    Oninit()
     glutDisplayFunc(display)
+    #glutReshapeFunc(reshape)
     glutKeyboardFunc(keyboard)
+    init_gl(800, 800)
     glutMainLoop()
 
-if __name__ == "__main__":
-    test()
+
+main()
+
