@@ -30,7 +30,7 @@ class Read:
 
         l_f = []
         for n in list_F:
-            l_f.append(list(map(int, re.split(r'[/\s]', n)[1:7:2])))
+            l_f.append(list(x - 1 for x in map(int, re.split(r'[/\s]', n)[1:7:2])))
 
         vertex = []
         for n in list_V:
@@ -42,7 +42,7 @@ class Read:
         for n in l_f:
             a = []
             for m in n:
-                a.append(vertex[m-1])
+                a.append(vertex[m])
             a = np.array(a)
             x.append(np.linalg.solve(a, b))
 

@@ -2,71 +2,87 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import read
-#from OpenGL.GL.framebufferobjects import *
 
 source = '/home/x/xgit/zbuffer/model/wolf.obj'
 r = read.Read(source)
 v,f,x = r.out()
-ESCAPE = as_8_bit('\033')
-
+rotate = 0
 def keyboard(key, foo, bar):
-    if key == ESCAPE:
-        exit()
+    exit()
+
+def initGL(width, height):
+    glClearColor(0.0, 0.0, 0.0, 0.0)
+    glClearDepth(1.0)
+    glDepthFunc(GL_LESS)
+    glEnable(GL_DEPTH_TEST)
+    glShadeModel(GL_SMOOTH)
+
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+
+    gluPerspective(45.0, float(width)/float(height), 0.1, 100.0)
+
+    glMatrixMode(GL_MODELVIEW)
+
+def ResizeGL(width, height):
+    if height == 0:
+        height = 1
+
+    glViewport(0, 0, width, height)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluPerspective(45.0, float(width)/float(height), 0.1, 100.0)
+    glMatrixMode(GL_MODELVIEW)
 
 def drawFunc():
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    #glRotete(45, 0, 1,0)
+    global rotate
 
-    #线框消隐
-    #glColorMask(0,0,0,0) 
-    #glEnable(GL_DEPTH_TEST)
-    #glDepthFunc(GL_LESS)
-    #glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-    #glPolygonOffset(1.1, 4.0)
-    #glEnable(GL_POLYGON_OFFSET_FILL)
-    #glBegin(GL_TRIANGLES)
-    #for n in f:
-    #    glColor3f(1.0,1.0,0.0)
-    #    glVertex3fv(v[n[0]-1])
-    #    glVertex3fv(v[n[1]-1])
-    #    glVertex3fv(v[n[2]-1])
-    #glEnd()
-    #glDisable(GL_POLYGON_OFFSET_FILL)
-    #glColorMask(1,1,1,1)
-    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glLoadIdentity()
+
+    glTranslatef(0.0, -0.5, -3)
+    glRotatef(rotate, 0, 1, 0)
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) 
     #glPointSize(5.0)
     glBegin(GL_TRIANGLES)
     for n in f:
-        glColor3f(1.0,1.0,0.0)
-        glVertex3fv(v[n[0]-1])
-        glVertex3fv(v[n[1]-1])
-        glVertex3fv(v[n[2]-1])
+        glColor3f(1, 1, 0)
+        glVertex3fv(v[n[0]])
+        glVertex3fv(v[n[1]])
+        glVertex3fv(v[n[2]])
     glEnd()
 
-    fbo = glGenFramebuffers(1)
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo)
+    rotate += 1
+    #fbo = glGenFramebuffers(1)
+    #glBindFramebuffer(GL_FRAMEBUFFER, fbo)
 
-    color = glGenRenderbuffers(1)
-    glBindRenderbuffer(GL_RENDERBUFFER, color)
-    glRenderbufferStorage(
-            GL_RENDERBUFFER,
-            GL_RGBA,
-            800,
-            800,
-            )
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color)
+    #color = glGenRenderbuffers(1)
+    #glBindRenderbuffer(GL_RENDERBUFFER, color)
+    #glRenderbufferStorage(
+    #        GL_RENDERBUFFER,
+    #        GL_RGBA,
+    #        800,
+    #        800,
+    #        )
+    #glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color)
 
-    glBindRenderbuffer(GL_RENDERBUFFER, 0)
-    glBindFramebuffer(GL_FRAMEBUFFER, 0)
-    print(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
-    glFlush()
+    #glBindRenderbuffer(GL_RENDERBUFFER, 0)
+    #glBindFramebuffer(GL_FRAMEBUFFER, 0)
+    #print(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+    glutSwapBuffers()
 
-glutInit()
-glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH)
-glutInitWindowSize(800,800)
-glutCreateWindow("First")
-glutDisplayFunc(drawFunc)
-#glutIdleFunc(drawFunc)
-glutKeyboardFunc(keyboard)
-glutMainLoop()
+def main():
+    glutInit()
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH)
+    glutInitWindowSize(800,800)
+    glutInitWindowPosition(0, 0)
+    glutCreateWindow("First")
+    glutDisplayFunc(drawFunc)
+    glutIdleFunc(drawFunc)
+    glutReshapeFunc(ResizeGL)
+    glutKeyboardFunc(keyboard)
+    initGL(800, 800)
+    glutMainLoop()
+
+main()
