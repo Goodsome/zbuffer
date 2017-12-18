@@ -1,5 +1,4 @@
-
-m OpenGL.GL import *
+from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GL import shaders
 import numpy as np
@@ -51,9 +50,7 @@ def init_vbo_vao():
     global vertex, vertex_array, vertex_buffer
 
     vertex_buffer = glGenBuffers(1)
-    vertex_array = glGenVertexArrays(1)
 
-    glBindVertexArray(vertex_array)
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer)
     glBufferData(GL_ARRAY_BUFFER, vertex, GL_STATIC_DRAW)
 
@@ -61,7 +58,6 @@ def init_vbo_vao():
     glEnableVertexAttribArray(0)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0)
-    glBindVertexArray(0)
 
 
 def reshape(width, height):
@@ -80,11 +76,11 @@ def display():
     # glTranslatef(-1.5, 0.0, -7.0)
 
     glUseProgram(shaderProgram)
-    glBindVertexArray(vertex_array)
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer)
     glDrawArrays(GL_TRIANGLES, 0, 3)
 
-    glBindVertexArray(0)
     glUseProgram(0)
+    glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     glutSwapBuffers()
 

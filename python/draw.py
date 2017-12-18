@@ -4,7 +4,7 @@ from OpenGL.GLUT import *
 import read
 #from OpenGL.GL.framebufferobjects import *
 
-source = '/home/x/xgit/zbuffer/model/wolf.obj'
+source = '/Users/air/xgit/zbuffer/model/wolf.obj'
 r = read.Read(source)
 v,f,x = r.out()
 ESCAPE = as_8_bit('\033')

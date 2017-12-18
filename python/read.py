@@ -48,4 +48,3 @@ class Read:
 
         return vertex, l_f, x        
     
-Read(source = '/home/x/xgit/zbuffer/model/wolf.obj').out()
