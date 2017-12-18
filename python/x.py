@@ -54,7 +54,7 @@ def init_vbo_vao():
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer)
     glBufferData(GL_ARRAY_BUFFER, vertex, GL_STATIC_DRAW)
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, None)
     glEnableVertexAttribArray(0)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0)
