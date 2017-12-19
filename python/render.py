@@ -4,7 +4,7 @@ from OpenGL.GL import shaders
 import numpy as np
 import read
 
-source = '/home/x/xgit/zbuffer/model/wolf.obj'
+source = '/Users/air/xgit/zbuffer/model/wolf.obj'
 r = read.Read(source)
 vertex_data, indices_data, x = r.out()
 
@@ -32,13 +32,13 @@ def init_shader():
     global shaderProgram
 
     vertex_shader = shaders.compileShader(
-        """#version 130
+        """
         void main() {
             gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; 
         }""", GL_VERTEX_SHADER)
 
     fragment_shader = shaders.compileShader(
-        """#version 130
+        """
         void main() {
             gl_FragColor = vec4( 1, 1, 0, 1 ); 
             }""", GL_FRAGMENT_SHADER)

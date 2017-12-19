@@ -18,9 +18,6 @@ class Read:
                     return True
                 return False
     
-        def guiyi(l):
-            return [x / 600 for x in l]
-
         open_file = open(self.source, 'r')
         read_file = open_file.readlines()
         open_file.close
@@ -31,12 +28,13 @@ class Read:
         l_f = []
         for n in list_F:
             l_f.append(list(x - 1 for x in map(int, re.split(r'[/\s]', n)[1:7:2])))
+        l_f = np.array(l_f)
 
         vertex = []
         for n in list_V:
             vertex.append(list(map(float, re.split(r'\s', n)[1:4])))
-        vertex = list(map(guiyi, vertex))  
-        
+        vertex = np.array(vertex)
+
         x= []
         b = [1, 1 ,1] 
         for n in l_f:
