@@ -3,11 +3,12 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import numpy as np
 import read
+import os
 
 height = 600
 width = 800
 
-source = '/Users/air/xgit/zbuffer/model/wolf.obj'
+source = os.getcwd() + '/' + 'wolf.obj'
 r = read.Read(source)
 vertex, indices, faces = r.out()
 v_max = np.max(vertex, axis=0)
@@ -29,9 +30,7 @@ c = v[:, 0, 1]
 d = np.argsort(c)
 v = v[d[::-1]]
 
-for i in range(height, 0 , -1):
-    if
-    for j in range(width):
+
 def display():
     global pixels
 
