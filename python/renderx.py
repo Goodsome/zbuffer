@@ -5,9 +5,9 @@ from OpenGL.GL import shaders
 import numpy as np
 import read
 
-source = '/home/x/xgit/zbuffer/model/wolf.obj'
+source = os.getcwd() + '/' + 'wolf.obj'
 r = read.Read(source)
-model_vertex, model_indices, x = r.out()
+model_vertex, model_indices = r.out()
 
 cube_vertex = [
     1, 1, 1,
@@ -51,9 +51,8 @@ def init_shader():
 
     vertex_shader = shaders.compileShader(
         """
-        attribute vec3 aPos;
         void main() { 
-        gl_Position = vec4(aPos, 1); 
+        gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; 
         }""", GL_VERTEX_SHADER)
 
     fragment_shader = shaders.compileShader(
@@ -102,7 +101,7 @@ def init_vao():
 
 
 def keyboard(*args):
-    if args[0] == '\033':
+    if args[0]:     # == '\033':
         exit()
     if args[0] == '\167':
         cameraPos[2] -= 0.1
@@ -120,19 +119,19 @@ def init_gl(width, height):
     init_vao()
 
     glClearColor(0, 0, 0, 1)
-    # glMatrixMode(GL_PROJECTION)
-    # glLoadIdentity()
-    # gluPerspective(45.0, float(width) / float(height), 0.1, 100.0)
-    # glMatrixMode(GL_MODELVIEW)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluPerspective(45.0, float(width) / float(height), 0.1, 100.0)
+    glMatrixMode(GL_MODELVIEW)
 
 
 def reshape(width, height):
 
     glViewport(0, 0, width, height)
-    # glMatrixMode(GL_PROJECTION)
-    # glLoadIdentity()
-    # gluPerspective(45.0, float(width) / float(height), 0.1, 100.0)
-    # glMatrixMode(GL_MODELVIEW)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluPerspective(45.0, float(width) / float(height), 0.1, 100.0)
+    glMatrixMode(GL_MODELVIEW)
 
 
 def display():
@@ -141,15 +140,15 @@ def display():
 
     glClear(GL_COLOR_BUFFER_BIT)
 
-    # glLoadIdentity()
-    # gluLookAt(
-    #     cameraPos[0], cameraPos[1], cameraPos[2],  # eye-point
-    #     cameraPos[0], cameraPos[1], 0,  # center-of-view
-    #     0, 1, 0,  # up-vector
-    # )
+    glLoadIdentity()
+    gluLookAt(
+        cameraPos[0], cameraPos[1], cameraPos[2],  # eye-point
+        cameraPos[0], cameraPos[1], 0,  # center-of-view
+        0, 1, 0,  # up-vector
+    )
     # # glRotatef(rotate, 0, 1, 0)
 
-    glTranslatef(0, 0, 0)
+    glTranslatef(0, 0, -5)
     glUseProgram(model_shader)
     glBindVertexArray(VAO)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
@@ -177,7 +176,6 @@ def main():
     glutInitWindowSize(800, 800)
     glutCreateWindow("x")
     glutDisplayFunc(display)
-    glutIdleFunc(display)
     glutReshapeFunc(reshape)
     glutKeyboardFunc(keyboard)
     init_gl(800, 800)

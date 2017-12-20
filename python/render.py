@@ -3,10 +3,11 @@ from OpenGL.GLUT import *
 from OpenGL.GL import shaders
 import numpy as np
 import read
+import os
 
-source = '/Users/air/xgit/zbuffer/model/wolf.obj'
+source = os.getcwd() + '/' + 'wolf.obj'
 r = read.Read(source)
-vertex_data, indices_data, x = r.out()
+vertex_data, indices_data = r.out()
 
 shaderProgram = None
 VBO = None
@@ -77,14 +78,9 @@ def display():
     glClearColor(0.2, 0.3, 0.3, 1.0)
     glClear(GL_COLOR_BUFFER_BIT)
 
-    rotate = 0
-    rotate += 0.05
-    glRotatef(rotate, 0, 1, 0)
- 
     glUseProgram(shaderProgram)
     glBindVertexArray(VAO)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-    glPointSize(5)
     glDrawElements(GL_TRIANGLES, 3 * indices.shape[0], GL_UNSIGNED_INT, None)
     glBindVertexArray(0)
     glUseProgram(0)
@@ -100,7 +96,6 @@ def main():
     glutInitWindowSize(800, 800)
     glutCreateWindow("x")
     glutDisplayFunc(display)
-    glutIdleFunc(display)
     glutReshapeFunc(reshape)
     glutKeyboardFunc(keyboard)
     init_gl()

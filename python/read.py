@@ -1,11 +1,11 @@
 import re
 import numpy as np
 
+
 class Read:
 
     def __init__(self, source):
         self.source = source
-    
     
     def out(self):
 
@@ -35,14 +35,5 @@ class Read:
             vertex.append(list(map(float, re.split(r'\s', n)[1:4])))
         vertex = np.array(vertex)
 
-        x= []
-        b = [1, 1 ,1] 
-        for n in l_f:
-            a = []
-            for m in n:
-                a.append(vertex[m])
-            a = np.array(a)
-            x.append(np.linalg.solve(a, b))
+        return vertex, l_f
 
-        return vertex, l_f, x        
-    

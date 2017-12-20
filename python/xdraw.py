@@ -3,12 +3,15 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import read
 
-source = '/Users/air/xgit/zbuffer/model/wolf.obj'
+source = os.getcwd() + '/' + 'wolf.obj'
 r = read.Read(source)
-v,f,x = r.out()
+v, f = r.out()
 rotate = 0
+
+
 def keyboard(key, foo, bar):
     exit()
+
 
 def initGL(width, height):
     glClearColor(0.0, 0.0, 0.0, 0.0)
@@ -23,6 +26,7 @@ def initGL(width, height):
     gluPerspective(45.0, float(width)/float(height), 0.1, 100.0)
 
     glMatrixMode(GL_MODELVIEW)
+
 
 def ResizeGL(width, height):
     if height == 0:
