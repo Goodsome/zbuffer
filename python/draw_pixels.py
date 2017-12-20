@@ -3,6 +3,7 @@ from OpenGL.GLUT import *
 import numpy as np
 import read
 import os
+import time
 
 height = 600
 width = 800
@@ -27,20 +28,28 @@ for i in range(tri_v.shape[0]):
     tri_v[i] = tri_v[i, np.argsort(tri_v[:, :, 1], axis=1)[i, ::-1]]
 tri_v = tri_v[np.argsort(tri_v[:, 0, 1])[::-1]]
 
+start = time.time()
+elapsed = 0
+
 for i in range(int(max(vertex[:, 1])), -1, -1):
     tran = (tri_v[:, 0, 1] > i) * (tri_v[:, 0, 1] < i + 1)
     act_v = np.append(act_v, tri_v[tran]).reshape(-1, 3, 3)
     act_v = act_v[act_v[:, 2, 1] < i]
     act_v1 = act_v[act_v[:, 1, 1] < i]
     act_v2 = act_v[act_v[:, 1, 1] > i]
-    print(i)
+    dx = (act_v1[:, 0, 0] - act_v1[:, 2, 0]) / (act_v1[:, 0, 1] - act_v1[:, 2, 1])
+    if np.size(act_v) == 0:
+        continue
     for j in range(int(np.min(act_v[:, :, 0])), int(np.max(act_v[:, :, 0])) + 1):
-        # dx = (act_v1[:, 0, 0] - act_v1[:, 2, 0]) / (act_v1[:, 0, 1] - act_v1[:, 2, 1])
-        # tran_l = np.ceil(dx * (i - act_v1[:, 0, 1]) + act_v1[:, 0, 0]) == j
-        # act_l = np.append(act_l, act_v1[tran_l])
-        pass
+        tran_l = np.ceil(dx * (i - act_v1[:, 0, 1]) + act_v1[:, 0, 0]) == j
+        act_l = np.append(act_l, act_v1[tran_l])
+
+
+elapsed += time.time() - start
 
 print(act_v.shape)
+
+print(elapsed)
 
 
 def display():
