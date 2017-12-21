@@ -1,88 +1,119 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 import numpy as np
-import read
 import os
 import time
+import re
+
+
+def read(path):
+
+    def is_f(x):
+        return x[0] == 'f'
+
+    def is_v(x):
+        if x[0] == 'v':
+            if x[1] == ' ':
+                return True
+            return False
+
+    open_file = open(path, 'r')
+    read_file = open_file.readlines()
+
+    list_f = filter(is_f, read_file)
+    list_v = filter(is_v, read_file)
+
+    obj_indices = []
+    for n in list_f:
+        obj_indices.append(list(x - 1 for x in map(int, re.split(r'[/\s]', n)[1:7:2])))
+    obj_indices = np.array(obj_indices)
+
+    obj_vertex = []
+    for n in list_v:
+        obj_vertex.append(list(map(float, re.split(r'\s', n)[1:4])))
+    obj_vertex = np.array(obj_vertex)
+
+    return obj_vertex, obj_indices
+
 
 height = 600
 width = 800
-
+start = time.time()
 source = os.getcwd() + '/' + 'wolf.obj'
-r = read.Read(source)
-vertex, indices = r.out()
+vertex, indices = read(source)
 v_max = np.max(vertex, axis=0)
 v_min = np.min(vertex, axis=0)
 zoom = np.max((v_max - v_min)[0:2] / [width, height])
 vertex -= v_min
 vertex /= zoom
 
-tri_v = vertex[indices]
-act_v = np.array([])
-act_l = np.array([])
-colors = np.full(indices.shape, 0.07)
-zbuffer = np.zeros(width)
+faces = vertex[indices]
+act_faces = np.array([])
 pixels = np.zeros((height, width, 3))
 
-start = time.time()
+light_pos = np.array([width, height, max(vertex[:, 2])])
+light_color = np.array([1, 1, 1])
+object_color = np.array([0.7, 0.7, 0.7])
 
-for i in range(tri_v.shape[0]):
-    tri_v[i] = tri_v[i, np.argsort(tri_v[:, :, 1], axis=1)[i, ::-1]]
-# tri_v = tri_v[np.argsort(tri_v[:, 0, 1])[::-1]]
 
-dx_0 = tri_v[:, 1, 0:2] - tri_v[:, 2, 0:2]
-dx_0[dx_0[:, 1] == 0] = 1
-dx_0 /= dx_0[:, 1].reshape(-1, 1)
-dx_1 = tri_v[:, 0, 0:2] - tri_v[:, 2, 0:2]
-dx_1 /= dx_1[:, 1].reshape(-1, 1)
-dx_2 = tri_v[:, 0, 0:2] - tri_v[:, 1, 0:2]
-dx_2[dx_2[:, 1] == 0] = 1
-dx_2 /= dx_2[:, 1].reshape(-1, 1)
-dx = np.concatenate((dx_0[:, 0], dx_1[:, 0], dx_2[:, 0])).reshape(3, 1, -1).T
+for i in range(faces.shape[0]):
+    faces[i] = faces[i, np.argsort(faces[:, :, 1], axis=1)[i, ::-1]]
 
-xl = np.array([
-    [0, 1, 1],
-    [-1, 0, -1],
-    [-1, -1, 0]
-])
+vector_12 = faces[:, 1, :] - faces[:, 2, :]
+vector_02 = faces[:, 0, :] - faces[:, 2, :]
+vector_01 = faces[:, 0, :] - faces[:, 1, :]
+normal = np.cross(vector_12, vector_02)
+normal /= np.linalg.norm(normal, 2, axis=1).reshape(-1, 1)
+normal[normal[:, 2] < 0] *= -1
+normal.shape = [-1, 1, 3]
 
-A_v = np.concatenate((tri_v[:, 0:3, 0:2], np.ones((tri_v.shape[0], 3, 1),)), axis=2)
-b_v = tri_v[:, 0:3, 2]
-solve_v = np.linalg.solve(A_v, b_v).reshape(-1, 1, 3)
+vector_12[vector_12[:, 1] == 0] = 1
+vector_01[vector_01[:, 1] == 0] = 1
+vector_12 /= vector_12[:, 1].reshape(-1, 1)
+vector_02 /= vector_02[:, 1].reshape(-1, 1)
+vector_01 /= vector_01[:, 1].reshape(-1, 1)
+vector = np.concatenate((vector_12[:, 0], vector_02[:, 0], vector_01[:, 0])).reshape(3, 1, -1).T
 
-tri_v = np.concatenate((tri_v, dx, solve_v), axis=1)
+
+A_faces = np.concatenate((faces[:, 0:3, 0:2], np.ones((faces.shape[0], 3, 1),)), axis=2)
+b_faces = faces[:, 0:3, 2]
+solve_faces = np.linalg.solve(A_faces, b_faces).reshape(-1, 1, 3)
+
+faces = np.concatenate((faces, vector, solve_faces, normal), axis=1)
 
 for i in range(int(max(vertex[:, 1])), -1, -1):
-    tran = (tri_v[:, 0, 1] > i) * (tri_v[:, 0, 1] < i + 1)
-    act_v = np.append(act_v, tri_v[tran]).reshape(-1, 5, 3)
-    act_v = act_v[act_v[:, 2, 1] < i]
-    if np.size(act_v) == 0:
+    tran = (faces[:, 0, 1] > i) * (faces[:, 0, 1] < i + 1)
+    act_faces = np.append(act_faces, faces[tran]).reshape(-1, 6, 3)
+    act_faces = act_faces[act_faces[:, 2, 1] < i]
+    if np.size(act_faces) == 0:
         continue
-    act_v1 = act_v[act_v[:, 1, 1] < i]
-    act_v2 = act_v[act_v[:, 1, 1] >= i]
-    j_12 = (i - act_v2[:, 0, 1]) * act_v2[:, 3, 1] + act_v2[:, 0, 0]
-    j_0 = (i - act_v2[:, 2, 1]) * act_v2[:, 3, 0] + act_v2[:, 2, 0]
-    j_11 = (i - act_v1[:, 0, 1]) * act_v1[:, 3, 1] + act_v1[:, 0, 0]
-    j_2 = (i - act_v1[:, 0, 1]) * act_v1[:, 3, 2] + act_v1[:, 0, 0]
-    j_120 = np.concatenate((j_12, j_11, j_0, j_2)).reshape(2, -1).T
-    j_120 = np.sort(j_120)
-    j_120 = np.ceil(j_120)
+    act_faces1 = act_faces[act_faces[:, 1, 1] < i]
+    act_faces2 = act_faces[act_faces[:, 1, 1] >= i]
+    act_faces = np.concatenate((act_faces2, act_faces1), axis=0)
+    j_10 = (i - act_faces2[:, 0, 1]) * act_faces2[:, 3, 1] + act_faces2[:, 0, 0]
+    j_0 = (i - act_faces2[:, 2, 1]) * act_faces2[:, 3, 0] + act_faces2[:, 2, 0]
+    j_12 = (i - act_faces1[:, 0, 1]) * act_faces1[:, 3, 1] + act_faces1[:, 0, 0]
+    j_2 = (i - act_faces1[:, 0, 1]) * act_faces1[:, 3, 2] + act_faces1[:, 0, 0]
+    J = np.ceil(np.sort(np.concatenate((j_10, j_12, j_0, j_2)).reshape(2, -1).T))
 
-    for n in j_120:
-        for j in range(int(n[0]), int(n[1])):
-            # z = np.dot(act_v[:, 4], [j, i, 1])
-            pixels[i, j] = [0.7, 0.7, 0.7]
+    for j in range(int(min(J[:, 0])), int(max(J[:, 1]))):
+        tran = (J[:, 0] <= j) * (J[:, 1] > j)
+        z = np.dot(act_faces[tran][:, 4], [j, i, 1])
+        if z.size == 0:
+            continue
+        draw_v = act_faces[tran][np.argmax(z)]
+        point_pos = np.array([j, i, max(z)])
+        lp_vector = light_pos - point_pos
+        lp_vector /= np.linalg.norm(lp_vector)
+        diff = np.dot(lp_vector, draw_v[5])
+        diffuse = diff * light_color + 0.2
+        pixels[i, j] = diffuse * object_color
 
 elapsed = time.time() - start
-
-print(act_v.shape)
-
 print(elapsed)
 
 
 def display():
-
-    global pixels
 
     glClear(GL_COLOR_BUFFER_BIT)
    
@@ -113,4 +144,3 @@ def main():
 
 
 main()
-
