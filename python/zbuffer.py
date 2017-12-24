@@ -63,7 +63,7 @@ def draw_pixels():
     vector_01 = faces[:, 0, :] - faces[:, 1, :]
     normal = np.cross(vector_12, vector_02)
     normal /= np.linalg.norm(normal, 2, axis=1).reshape(-1, 1)
-    normal[normal[:, 2] < 0] *= -1 
+    normal[normal[:, 2] < 0] *= -1
     normal.shape = [-1, 1, 3]                   # 计算每个面的法向量
 
     vector_12[vector_12[:, 1] == 0] = 1
